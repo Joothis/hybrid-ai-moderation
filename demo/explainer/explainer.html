@@ -1,0 +1,468 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hybrid Moderation Explainer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0f1d; --panel: #121a2e; --panel2: #18223a; --line: #26324f;
+    --text: #e9edf6; --muted: #8f9ab3;
+    --rules: #f5b14c; --ml: #4cc9f0; --llm: #b98cff;
+    --block: #ff5d73; --allow: #3ddc97; --hybrid: #3ddc97;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; background: #05080f; overflow: hidden; }
+  body { font-family: Inter, system-ui, sans-serif; color: var(--text); }
+  #stage {
+    position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: hidden;
+    background: radial-gradient(1200px 700px at 50% 35%, #111a33 0%, var(--bg) 70%);
+    transform-origin: 0 0;
+  }
+  .abs { position: absolute; }
+  .scene { position: absolute; inset: 0; opacity: 0; }
+  .center { left: 0; right: 0; text-align: center; }
+  .mono { font-family: "JetBrains Mono", monospace; }
+  .muted { color: var(--muted); }
+
+  /* captions */
+  .cap { position: absolute; left: 160px; right: 160px; top: 930px; text-align: center;
+         font-size: 34px; font-weight: 500; opacity: 0; line-height: 1.3; }
+  .cap b { font-weight: 700; }
+  .k-rules { color: var(--rules); } .k-ml { color: var(--ml); } .k-llm { color: var(--llm); }
+  .k-block { color: var(--block); } .k-allow { color: var(--allow); }
+
+  /* scene 1 */
+  #s1 h1 { font-size: 112px; font-weight: 800; letter-spacing: -2px; }
+  #s1 .sub { font-size: 40px; color: var(--muted); margin-top: 26px; }
+  .pill { display: inline-block; padding: 10px 26px; border-radius: 999px; font-weight: 700; font-size: 34px; }
+
+  /* scene 2 */
+  .dot { position: absolute; width: 14px; height: 14px; border-radius: 50%; background: var(--muted); }
+  .bigbox { border-radius: 28px; border: 3px solid var(--llm); background: rgba(185,140,255,.08);
+            display: flex; align-items: center; justify-content: center; flex-direction: column; }
+  .stat { font-size: 40px; font-weight: 600; opacity: 0; }
+  .stat .num { font-size: 64px; font-weight: 800; }
+
+  /* scene 3 */
+  .card { position: absolute; top: 330px; width: 400px; height: 290px; border-radius: 26px;
+          background: var(--panel); border: 3px solid var(--line); padding: 26px 30px; }
+  .card .badge { position: absolute; top: -26px; left: 26px; width: 52px; height: 52px; border-radius: 50%;
+                 display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 26px; color: #0a0f1d; }
+  .card h3 { font-size: 40px; font-weight: 800; margin-top: 8px; }
+  .card .meta { font-size: 22px; color: var(--muted); margin-top: 4px; }
+  .card .cost { position: absolute; right: 26px; top: 28px; font-size: 22px; font-weight: 600; color: var(--muted); }
+  .card .info { position: absolute; left: 30px; right: 30px; bottom: 26px; font-size: 22px; opacity: 0; line-height: 1.35; }
+  .glow { position: absolute; inset: -3px; border-radius: 26px; opacity: 0; pointer-events: none; }
+  .chip { position: absolute; width: 400px; padding: 18px 22px; border-radius: 18px; background: #f3f5fb; color: #121a2e;
+          font-size: 23px; font-weight: 500; line-height: 1.3; box-shadow: 0 14px 40px rgba(0,0,0,.45); opacity: 0; }
+  .chip small { display: block; font-size: 16px; color: #66708a; font-weight: 600; margin-bottom: 4px; letter-spacing: .5px; }
+  .verdict { position: absolute; top: 805px; width: 400px; text-align: center; opacity: 0; }
+  .verdict span { display: inline-block; padding: 10px 24px; border-radius: 12px; font-weight: 800; font-size: 26px; }
+  .arrow { position: absolute; top: 440px; width: 70px; height: 40px; }
+  .track { position: relative; height: 22px; border-radius: 11px; background: #0c1324; margin-top: 18px; overflow: hidden; }
+  .band { position: absolute; top: 0; bottom: 0; left: 40%; width: 22%; background: rgba(185,140,255,.35); }
+  .fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: var(--ml); border-radius: 11px; opacity: .9; }
+  .thr { position: absolute; top: -4px; bottom: -4px; left: 51%; width: 3px; background: #fff; }
+  .think span { display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: var(--llm); margin-right: 8px; }
+
+  /* scene 4 */
+  .axis { position: absolute; left: 260px; width: 1400px; top: 640px; height: 4px; background: var(--line); border-radius: 2px; }
+  .bandbox { position: absolute; top: 470px; height: 220px; left: 820px; width: 300px; border-radius: 18px;
+             background: rgba(185,140,255,.14); border: 2px dashed rgba(185,140,255,.7); opacity: 0; }
+  .thrline { position: absolute; left: 968px; top: 470px; width: 3px; height: 220px; background: #fff; opacity: 0; }
+  .ndot { position: absolute; width: 22px; height: 22px; border-radius: 50%; background: #cfd6e6; }
+
+  /* scene 5 */
+  .frow { position: absolute; left: 260px; width: 1400px; height: 110px; }
+  .frow .lbl { position: absolute; left: 0; top: 18px; width: 300px; font-size: 36px; font-weight: 700; }
+  .frow .lbl small { display: block; font-size: 20px; color: var(--muted); font-weight: 500; }
+  .frow .bar { position: absolute; left: 320px; top: 20px; height: 70px; width: 0; border-radius: 14px; }
+  .frow .val { position: absolute; top: 28px; font-size: 40px; font-weight: 800; opacity: 0; }
+
+  /* scene 6 */
+  .bar6 { position: absolute; width: 92px; bottom: 260px; height: 0; border-radius: 10px 10px 0 0; }
+  .bval { position: absolute; width: 92px; text-align: center; font-size: 24px; font-weight: 700; opacity: 0; }
+  .glabel { position: absolute; top: 836px; width: 316px; text-align: center; font-size: 28px; font-weight: 700; }
+  .legend { position: absolute; top: 250px; left: 170px; font-size: 24px; display: flex; gap: 34px; }
+  .legend i { display: inline-block; width: 20px; height: 20px; border-radius: 5px; margin-right: 10px; vertical-align: -3px; }
+  .scard { position: absolute; left: 1330px; width: 470px; height: 168px; border-radius: 22px; background: var(--panel);
+           border: 2px solid var(--line); padding: 24px 30px; opacity: 0; }
+  .scard .t { font-size: 22px; color: var(--muted); font-weight: 600; }
+  .scard .v { font-size: 46px; font-weight: 800; margin-top: 8px; }
+  .scard .v small { font-size: 26px; color: var(--muted); font-weight: 600; }
+
+  #progress { position: absolute; left: 0; bottom: 0; height: 6px; width: 0; background: linear-gradient(90deg, var(--rules), var(--ml), var(--llm)); }
+</style>
+</head>
+<body>
+<div id="stage">
+
+  <!-- ============ 1. TITLE ============ -->
+  <div class="scene" id="s1">
+    <div class="abs center" style="top:330px">
+      <h1 id="t1">Hybrid AI Moderation</h1>
+      <div class="sub" id="t1sub">How to moderate 10,000 comments a day without sending all of them to an LLM</div>
+      <div id="t1pills" style="margin-top:64px; display:flex; gap:22px; justify-content:center; align-items:center">
+        <span class="pill p" style="background:rgba(245,177,76,.15);color:var(--rules)">Rules</span>
+        <span class="p muted" style="font-size:36px">→</span>
+        <span class="pill p" style="background:rgba(76,201,240,.15);color:var(--ml)">Machine learning</span>
+        <span class="p muted" style="font-size:36px">→</span>
+        <span class="pill p" style="background:rgba(185,140,255,.15);color:var(--llm)">LLM, only when needed</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 2. THE PROBLEM ============ -->
+  <div class="scene" id="s2">
+    <div class="abs center" style="top:110px; font-size:56px; font-weight:800" id="s2t">The easy answer: send every comment to an LLM</div>
+    <div class="abs" id="dotfield" style="left:150px; top:300px; width:520px; height:440px"></div>
+    <div class="abs muted" style="left:150px; top:760px; width:520px; text-align:center; font-size:28px">10,000 comments / day</div>
+    <div class="abs bigbox" id="bigllm" style="left:820px; top:340px; width:300px; height:360px">
+      <div style="font-size:52px; font-weight:800; color:var(--llm)">LLM</div>
+      <div class="muted" style="font-size:24px; margin-top:6px">every single one</div>
+    </div>
+    <div class="abs" style="left:1260px; top:300px; width:600px">
+      <div class="stat" id="st1"><span class="num" id="n1">0</span> s<br><span class="muted" style="font-size:28px">per comment on this machine</span></div>
+      <div class="stat" id="st2" style="margin-top:36px"><span class="num" id="n2">0</span> hours<br><span class="muted" style="font-size:28px">of LLM compute per day</span></div>
+      <div class="stat" id="st3" style="margin-top:36px">$<span class="num" id="n3">0</span> / month<br><span class="muted" style="font-size:28px">at hosted API token prices</span></div>
+    </div>
+    <div class="cap" id="c2">Slow and expensive, and most comments are easy to judge.</div>
+  </div>
+
+  <!-- ============ 3. THE PIPELINE ============ -->
+  <div class="scene" id="s3">
+    <div class="abs center" style="top:90px; font-size:52px; font-weight:800">Each comment stops at the cheapest layer that can decide it</div>
+
+    <div class="card" id="cR" style="left:260px">
+      <div class="glow" id="gR" style="box-shadow:0 0 0 3px var(--rules), 0 0 60px rgba(245,177,76,.45)"></div>
+      <div class="badge" style="background:var(--rules)">1</div>
+      <div class="cost">0 ms · $0</div>
+      <h3 class="k-rules">Rules</h3>
+      <div class="meta">regex, blocklists, PII patterns</div>
+      <div class="info" id="iRhit">normalised to <span class="mono">"fuck you"</span><br><b class="k-rules">rule hit: directed profanity</b></div>
+      <div class="info muted" id="iRmiss">no rule matched → pass on</div>
+    </div>
+
+    <svg class="arrow" style="left:675px" viewBox="0 0 70 40"><path d="M4 20 H60 M48 8 L62 20 L48 32" stroke="#4a5778" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+
+    <div class="card" id="cM" style="left:760px">
+      <div class="glow" id="gM" style="box-shadow:0 0 0 3px var(--ml), 0 0 60px rgba(76,201,240,.45)"></div>
+      <div class="badge" style="background:var(--ml)">2</div>
+      <div class="cost">~2 ms · $0</div>
+      <h3 class="k-ml">ML model</h3>
+      <div class="meta">TF-IDF + Logistic Regression</div>
+      <div class="track" id="trk"><div class="band"></div><div class="fill" id="fill"></div><div class="thr"></div></div>
+      <div class="info" id="iMconf"><b class="k-ml">score 0.97: confident</b><br>decide now</div>
+      <div class="info" id="iMunsure"><b class="k-llm">score 0.53: unsure band</b><br>escalate to the LLM</div>
+    </div>
+
+    <svg class="arrow" style="left:1175px" viewBox="0 0 70 40"><path d="M4 20 H60 M48 8 L62 20 L48 32" stroke="#4a5778" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+
+    <div class="card" id="cL" style="left:1260px">
+      <div class="glow" id="gL" style="box-shadow:0 0 0 3px var(--llm), 0 0 60px rgba(185,140,255,.45)"></div>
+      <div class="badge" style="background:var(--llm)">3</div>
+      <div class="cost">~5 s · tokens</div>
+      <h3 class="k-llm">LLM</h3>
+      <div class="meta">local qwen3 8B, JSON answer + reason</div>
+      <div class="info think" id="iLthink"><span></span><span></span><span></span></div>
+      <div class="info" id="iLreason"><b class="k-llm">"Polite wording, but it insults a person."</b></div>
+    </div>
+
+    <div class="chip" id="chA"><small>COMMENT 1</small>f.u.c.k y.o.u, nobody asked</div>
+    <div class="chip" id="chB"><small>COMMENT 2</small>You are a complete idiot and an embarrassment to this city.</div>
+    <div class="chip" id="chC"><small>COMMENT 3</small>Mr. Ritz is a rude and uncouth man. He won't be missed.</div>
+
+    <div class="verdict" id="vA" style="left:260px"><span style="background:rgba(255,93,115,.18);color:var(--block)">BLOCK · 0 ms</span></div>
+    <div class="verdict" id="vB" style="left:760px"><span style="background:rgba(255,93,115,.18);color:var(--block)">BLOCK · 2 ms</span></div>
+    <div class="verdict" id="vC" style="left:1260px"><span style="background:rgba(255,93,115,.18);color:var(--block)">FLAG: toxic · 4.8 s</span></div>
+
+    <div class="cap" id="c3a"><b class="k-rules">① Rules</b> catch clear-cut cases instantly, even when disguised.</div>
+    <div class="cap" id="c3b"><b class="k-ml">② The ML model</b> handles most comments in about 2 milliseconds.</div>
+    <div class="cap" id="c3c"><b class="k-llm">③ Only unsure comments</b> go to the LLM. ML alone would have missed this one.</div>
+  </div>
+
+  <!-- ============ 4. THE UNSURE BAND ============ -->
+  <div class="scene" id="s4">
+    <div class="abs center" style="top:110px; font-size:56px; font-weight:800">How does it know it's unsure?</div>
+    <div class="abs center muted" style="top:200px; font-size:32px">Every comment gets a score. Scores near the decision threshold are the risky ones.</div>
+    <div class="bandbox" id="bandbox"></div>
+    <div class="thrline" id="thrline"></div>
+    <div class="abs" id="bandlbl" style="left:820px; width:300px; top:420px; text-align:center; font-size:26px; font-weight:700; color:var(--llm); opacity:0">unsure band → LLM</div>
+    <div class="axis"></div>
+    <div id="ndots"></div>
+    <div class="abs" style="left:260px; top:670px; font-size:28px; font-weight:700; color:var(--allow)" id="lclean">← clearly fine: allow</div>
+    <div class="abs" style="left:1260px; width:400px; text-align:right; top:670px; font-size:28px; font-weight:700; color:var(--block)" id="lharm">clearly harmful: block →</div>
+    <div class="cap" id="c4a" style="top:800px">You set a budget, e.g. <b class="k-llm">"send about 20% to the LLM"</b>.<br>Training turns it into the width of this band.</div>
+    <div class="cap" id="c4b" style="top:800px">High-risk labels like <b class="k-block">self-harm</b> use a lower floor:<br>any faint signal gets an LLM second opinion.</div>
+  </div>
+
+  <!-- ============ 5. FUNNEL ============ -->
+  <div class="scene" id="s5">
+    <div class="abs center" style="top:110px; font-size:56px; font-weight:800">Where 10,000 support tickets a day end up</div>
+    <div class="abs center muted" style="top:200px; font-size:30px">measured on the held-out test set, scaled to one day</div>
+    <div class="frow" style="top:340px"><div class="lbl k-rules">Rules<small>0 ms, free</small></div><div class="bar" id="fb1" style="background:var(--rules)"></div><div class="val k-rules" id="fv1"><span id="fn1">0</span> <span class="muted" style="font-size:28px">(9%)</span></div></div>
+    <div class="frow" style="top:500px"><div class="lbl k-ml">ML model<small>~2 ms, free</small></div><div class="bar" id="fb2" style="background:var(--ml)"></div><div class="val k-ml" id="fv2"><span id="fn2">0</span> <span class="muted" style="font-size:28px">(70%)</span></div></div>
+    <div class="frow" style="top:660px"><div class="lbl k-llm">LLM<small>~5 s, tokens</small></div><div class="bar" id="fb3" style="background:var(--llm)"></div><div class="val k-llm" id="fv3"><span id="fn3">0</span> <span class="muted" style="font-size:28px">(21%)</span></div></div>
+    <div class="cap" id="c5" style="top:880px">Only about <b class="k-llm">1 in 5</b> comments ever pays the LLM cost.</div>
+  </div>
+
+  <!-- ============ 6. RESULTS ============ -->
+  <div class="scene" id="s6">
+    <div class="abs center" style="top:90px; font-size:52px; font-weight:800">Benchmarked: ML only vs LLM only vs Hybrid</div>
+    <div class="abs center muted" style="top:170px; font-size:28px">F1 score on 300 held-out comments per use case (higher is better)</div>
+    <div class="legend"><span><i style="background:var(--ml)"></i>ML only</span><span><i style="background:var(--llm)"></i>LLM only</span><span><i style="background:var(--hybrid)"></i>Hybrid</span></div>
+    <div class="abs" style="left:150px; top:820px; width:1060px; height:3px; background:var(--line)"></div>
+    <div id="bars6"></div>
+    <div class="scard" id="sc1" style="top:300px"><div class="t">API COST @ 10K/DAY</div><div class="v k-allow">$40 <small>vs $185 / month</small></div></div>
+    <div class="scard" id="sc2" style="top:490px"><div class="t">LLM COMPUTE PER DAY</div><div class="v k-allow">~3 h <small>vs ~14 h</small></div></div>
+    <div class="scard" id="sc3" style="top:680px"><div class="t">MEDIAN LATENCY</div><div class="v k-allow">2 ms <small>vs ~5 s</small></div></div>
+    <div class="cap" id="c6" style="top:930px">Matches or beats ML alone, at <b class="k-allow">~78% lower cost</b> than sending everything to the LLM.</div>
+  </div>
+
+  <!-- ============ 7. OUTRO ============ -->
+  <div class="scene" id="s7">
+    <div class="abs center" style="top:380px; font-size:68px; font-weight:800; line-height:1.2" id="o1">Use the cheapest layer<br>that can decide confidently.</div>
+    <div class="abs center muted" style="top:620px; font-size:34px" id="o2">Measure it against the alternatives. Set the LLM budget per use case.</div>
+    <div class="abs center" style="top:720px; font-size:30px; font-weight:700" id="o3">
+      <span class="k-rules">Rules</span> <span class="muted">→</span> <span class="k-ml">ML</span> <span class="muted">→</span> <span class="k-llm">LLM</span>
+    </div>
+  </div>
+
+  <div id="progress"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="timing.js"></script>
+<script>
+(function () {
+  const $ = (s) => document.querySelector(s);
+  const RENDER = new URLSearchParams(location.search).has("render");
+
+  // seeded random so every render is identical
+  let seed = 7;
+  const rnd = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
+
+  // ---------- build dynamic elements ----------
+  // scene 2: 100 dots = 10,000 comments
+  const field = $("#dotfield");
+  for (let i = 0; i < 100; i++) {
+    const d = document.createElement("div");
+    d.className = "dot s2dot";
+    d.style.left = (i % 10) * 52 + 12 + "px";
+    d.style.top = Math.floor(i / 10) * 44 + 10 + "px";
+    field.appendChild(d);
+  }
+  // scene 4: score dots
+  const nd = $("#ndots");
+  const ndots = [];
+  for (let i = 0; i < 46; i++) {
+    // mixture: most comments are far from the threshold
+    const r = rnd();
+    let x = r < 0.55 ? 270 + rnd() * 520 : r < 0.8 ? 1130 + rnd() * 510 : 830 + rnd() * 280;
+    const d = document.createElement("div");
+    d.className = "ndot";
+    d.style.left = x - 11 + "px";
+    d.style.top = 440 - (i % 5) * 0 + "px";
+    nd.appendChild(d);
+    ndots.push({ el: d, x, band: x >= 820 && x <= 1120, harm: x > 1120, lane: i % 4 });
+  }
+  // scene 6: grouped bars
+  const groups = [
+    { name: "Social comments", v: [0.725, 0.509, 0.726] },
+    { name: "E-commerce reviews", v: [0.820, 0.599, 0.824] },
+    { name: "Support tickets", v: [0.838, 0.938, 0.852] },
+  ];
+  const colors = ["var(--ml)", "var(--llm)", "var(--hybrid)"];
+  const b6 = $("#bars6");
+  groups.forEach((g, gi) => {
+    const gx = 180 + gi * 350;
+    const lab = document.createElement("div");
+    lab.className = "glabel"; lab.style.left = gx - 10 + "px"; lab.textContent = g.name;
+    b6.appendChild(lab);
+    g.v.forEach((v, bi) => {
+      const x = gx + bi * 102;
+      const b = document.createElement("div");
+      b.className = "bar6 b6"; b.style.left = x + "px"; b.style.background = colors[bi];
+      b.dataset.h = Math.round(v * 480);
+      b.style.bottom = "260px";
+      const t = document.createElement("div");
+      t.className = "bval v6"; t.style.left = x + "px"; t.style.top = 820 - v * 480 - 36 + "px";
+      t.textContent = v.toFixed(3).replace(/^0/, "");
+      b6.appendChild(b); b6.appendChild(t);
+    });
+  });
+
+  // ---------- helpers ----------
+  const tl = gsap.timeline({ paused: true, defaults: { ease: "power2.out", duration: 0.6 } });
+  // Narration sync: timing.js (written by voiceover.py) lists pauses [atSecond, extraSeconds] to insert,
+  // so every scene holds until its voiceover line has finished. Positions below are pre-pause times.
+  const INS = window.TIMING_INSERTS || [];
+  const T = (t) => (typeof t === "number" ? t + INS.reduce((s, [at, ex]) => (at <= t ? s + ex : s), 0) : t);
+  const _to = tl.to.bind(tl), _fromTo = tl.fromTo.bind(tl), _set = tl.set.bind(tl);
+  tl.to = (a, b, p) => _to(a, b, T(p));
+  tl.fromTo = (a, b, c, p) => _fromTo(a, b, c, T(p));
+  tl.set = (a, b, p) => _set(a, b, T(p));
+  const sceneIn = (id, at) => tl.to(id, { opacity: 1, duration: 0.6 }, at);
+  const sceneOut = (id, at) => tl.to(id, { opacity: 0, duration: 0.5 }, at);
+  const fadeIn = (sel, at, extra = {}) => tl.fromTo(sel, { opacity: 0, y: 24 }, { opacity: 1, y: 0, ...extra }, at);
+  const fadeOut = (sel, at) => tl.to(sel, { opacity: 0, duration: 0.35 }, at);
+  const count = (sel, to, at, dur = 1.4, decimals = 0) => {
+    const o = { v: 0 };
+    tl.to(o, { v: to, duration: dur, ease: "power1.out",
+      onUpdate: () => { $(sel).textContent = o.v.toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals }); } }, at);
+  };
+  const glow = (sel, at, dur = 1.6) => tl.fromTo(sel, { opacity: 0 }, { opacity: 1, duration: 0.3, yoyo: true, repeat: 1, repeatDelay: dur }, at);
+  // chip positions: above each card, or on the verdict slot
+  const cardX = { R: 260, M: 760, L: 1260 };
+  const CHIP_Y = 168, LAND_Y = 650;
+
+  // ---------- 1. TITLE (0 – 5.5) ----------
+  sceneIn("#s1", 0);
+  fadeIn("#t1", 0.3, { duration: 0.9 });
+  fadeIn("#t1sub", 0.9, { duration: 0.8 });
+  tl.fromTo("#t1pills .p", { opacity: 0, y: 20 }, { opacity: 1, y: 0, stagger: 0.25, duration: 0.5 }, 1.8);
+  sceneOut("#s1", 5.2);
+
+  // ---------- 2. PROBLEM (5.7 – 15) ----------
+  sceneIn("#s2", 5.7);
+  fadeIn("#s2t", 5.8);
+  tl.fromTo(".s2dot", { opacity: 0, scale: 0 }, { opacity: 1, scale: 1, stagger: { each: 0.008, from: "random" }, duration: 0.3 }, 6.1);
+  tl.to(".s2dot", { x: (i) => 760 - ((i % 10) * 52 + 12) + 40, y: (i) => 213 - (Math.floor(i / 10) * 44 + 10),
+    opacity: 0, scale: 0.4, stagger: { each: 0.025, from: "start" }, duration: 0.7, ease: "power2.in" }, 7.2);
+  tl.fromTo("#bigllm", { scale: 1 }, { scale: 1.05, duration: 0.25, yoyo: true, repeat: 9, ease: "sine.inOut" }, 7.6);
+  fadeIn("#st1", 8.0); count("#n1", 4.8, 8.0, 1.0, 1);
+  fadeIn("#st2", 9.0); count("#n2", 13.7, 9.0, 1.2, 1);
+  fadeIn("#st3", 10.2); count("#n3", 185, 10.2, 1.2);
+  fadeIn("#c2", 11.6);
+  sceneOut("#s2", 14.6);
+
+  // ---------- 3. PIPELINE (15 – 44) ----------
+  sceneIn("#s3", 15.1);
+  tl.fromTo([ "#cR", "#cM", "#cL" ], { opacity: 0, y: 40 }, { opacity: 1, y: 0, stagger: 0.25 }, 15.3);
+  tl.fromTo(".arrow", { opacity: 0 }, { opacity: 1, stagger: 0.25 }, 15.8);
+
+  // comment 1 → rules
+  tl.set("#chA", { x: -440, y: CHIP_Y });
+  tl.to("#chA", { opacity: 1, x: cardX.R, duration: 1.0, ease: "power3.out" }, 16.8);
+  fadeIn("#c3a", 17.0);
+  tl.to("#chA", { y: CHIP_Y + 12, scale: 0.97, duration: 0.25, yoyo: true, repeat: 1, ease: "power1.inOut" }, 18.0);
+  glow("#gR", 18.4, 1.6);
+  fadeIn("#iRhit", 18.5);
+  tl.to("#chA", { y: LAND_Y, scale: 0.85, duration: 0.7, ease: "power2.inOut" }, 19.6);
+  tl.fromTo("#vA", { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, ease: "back.out(2)" }, 20.2);
+  fadeOut("#iRhit", 21.2);
+  fadeOut("#c3a", 21.6);
+
+  // comment 2 → rules (miss) → ML (confident)
+  tl.set("#chB", { x: -440, y: CHIP_Y });
+  tl.to("#chB", { opacity: 1, x: cardX.R, duration: 1.0, ease: "power3.out" }, 22.0);
+  fadeIn("#c3b", 22.2);
+  fadeIn("#iRmiss", 22.8);
+  tl.to("#chB", { x: cardX.M, duration: 0.8, ease: "power2.inOut" }, 23.5);
+  fadeOut("#iRmiss", 23.6);
+  tl.to("#chB", { y: CHIP_Y + 12, scale: 0.97, duration: 0.25, yoyo: true, repeat: 1, ease: "power1.inOut" }, 24.3);
+  glow("#gM", 24.7, 1.8);
+  tl.fromTo("#fill", { width: "0%" }, { width: "97%", duration: 0.9, ease: "power2.out" }, 24.8);
+  fadeIn("#iMconf", 25.5);
+  tl.to("#chB", { y: LAND_Y, scale: 0.85, duration: 0.7, ease: "power2.inOut" }, 26.5);
+  tl.fromTo("#vB", { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, ease: "back.out(2)" }, 27.1);
+  fadeOut("#iMconf", 28.0);
+  tl.to("#fill", { width: "0%", duration: 0.4 }, 28.0);
+  fadeOut("#c3b", 28.4);
+
+  // comment 3 → rules (miss) → ML (unsure) → LLM
+  tl.set("#chC", { x: -440, y: CHIP_Y });
+  tl.to("#chC", { opacity: 1, x: cardX.R, duration: 1.0, ease: "power3.out" }, 28.8);
+  fadeIn("#c3c", 29.0);
+  fadeIn("#iRmiss", 29.6);
+  tl.to("#chC", { x: cardX.M, duration: 0.8, ease: "power2.inOut" }, 30.3);
+  fadeOut("#iRmiss", 30.4);
+  glow("#gM", 31.2, 2.0);
+  tl.fromTo("#fill", { width: "0%" }, { width: "53%", duration: 0.9, ease: "power2.out" }, 31.3);
+  tl.to("#fill", { backgroundColor: "#b98cff", duration: 0.3 }, 32.2);
+  fadeIn("#iMunsure", 32.1);
+  tl.to("#chC", { x: cardX.L, duration: 0.9, ease: "power2.inOut" }, 33.8);
+  fadeOut("#iMunsure", 34.6);
+  tl.to("#chC", { y: CHIP_Y + 12, scale: 0.97, duration: 0.25, yoyo: true, repeat: 1, ease: "power1.inOut" }, 34.8);
+  glow("#gL", 35.2, 3.0);
+  fadeIn("#iLthink", 35.3, { duration: 0.3 });
+  tl.fromTo("#iLthink span", { opacity: 0.2 }, { opacity: 1, duration: 0.3, stagger: 0.15, yoyo: true, repeat: 5 }, 35.4);
+  fadeOut("#iLthink", 37.3);
+  fadeIn("#iLreason", 37.5);
+  tl.to("#chC", { y: LAND_Y, scale: 0.85, duration: 0.7, ease: "power2.inOut" }, 38.6);
+  tl.fromTo("#vC", { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, ease: "back.out(2)" }, 39.2);
+  sceneOut("#s3", 43.4);
+
+  // ---------- 4. UNSURE BAND (44 – 57) ----------
+  sceneIn("#s4", 43.9);
+  tl.fromTo(ndots.map((d) => d.el), { opacity: 0, y: -160 },
+    { opacity: 1, y: (i) => 190 - ndots[i].lane * 26, duration: 0.6, ease: "bounce.out", stagger: { each: 0.05, from: "random" } }, 44.6);
+  fadeIn("#thrline", 47.0);
+  fadeIn("#bandbox", 47.3);
+  fadeIn("#bandlbl", 47.6);
+  tl.to(ndots.filter((d) => !d.band && !d.harm).map((d) => d.el), { backgroundColor: "#3ddc97", duration: 0.4, stagger: 0.02 }, 48.2);
+  tl.to(ndots.filter((d) => d.harm).map((d) => d.el), { backgroundColor: "#ff5d73", duration: 0.4, stagger: 0.02 }, 48.5);
+  tl.to(ndots.filter((d) => d.band).map((d) => d.el), { backgroundColor: "#b98cff", scale: 1.35, duration: 0.4, stagger: 0.05, ease: "back.out(3)" }, 48.8);
+  fadeIn("#c4a", 49.4);
+  fadeOut("#c4a", 53.3);
+  fadeIn("#c4b", 53.7);
+  sceneOut("#s4", 57.6);
+
+  // ---------- 5. FUNNEL (58 – 66) ----------
+  sceneIn("#s5", 58.1);
+  const W = 1050;
+  [[0.09, "#fb1", "#fv1", "#fn1", 900], [0.70, "#fb2", "#fv2", "#fn2", 7000], [0.21, "#fb3", "#fv3", "#fn3", 2100]].forEach(([share, b, v, n, num], i) => {
+    const at = 58.7 + i * 0.7;
+    tl.to(b, { width: Math.max(W * share, 20), duration: 1.0, ease: "power3.out" }, at);
+    tl.set(v, { left: 320 + Math.max(W * share, 20) + 24 }, at);
+    tl.to(v, { opacity: 1, duration: 0.4 }, at + 0.4);
+    count(n, num, at, 1.0);
+  });
+  fadeIn("#c5", 61.6);
+  sceneOut("#s5", 66.0);
+
+  // ---------- 6. RESULTS (66.5 – 80) ----------
+  sceneIn("#s6", 66.5);
+  tl.to(".b6", { height: (i, el) => +el.dataset.h, duration: 1.0, ease: "power3.out", stagger: 0.12 }, 67.0);
+  tl.to(".v6", { opacity: 1, duration: 0.3, stagger: 0.12 }, 67.6);
+  tl.fromTo(["#sc1", "#sc2", "#sc3"], { opacity: 0, x: 40 }, { opacity: 1, x: 0, stagger: 0.6 }, 70.0);
+  fadeIn("#c6", 72.4);
+  sceneOut("#s6", 79.6);
+
+  // ---------- 7. OUTRO (80 – 86) ----------
+  sceneIn("#s7", 80.1);
+  fadeIn("#o1", 80.3, { duration: 0.9 });
+  fadeIn("#o2", 81.3);
+  fadeIn("#o3", 82.0);
+  tl.to({}, { duration: 0.1 }, 86.0); // hold
+
+  tl.to("#progress", { width: "100%", ease: "none", duration: tl.duration() }, 0);
+
+  // ---------- run ----------
+  window.__tl = tl;
+  window.__duration = tl.duration();
+  window.__seek = (t) => { tl.seek(t, false); return t; };
+
+  if (!RENDER) {
+    $("#progress").style.display = "block";
+    const fit = () => {
+      const s = Math.min(innerWidth / 1920, innerHeight / 1080);
+      const st = $("#stage");
+      st.style.transform = `scale(${s})`;
+      st.style.left = (innerWidth - 1920 * s) / 2 + "px";
+      st.style.top = (innerHeight - 1080 * s) / 2 + "px";
+    };
+    addEventListener("resize", fit); fit();
+    document.fonts.ready.then(() => tl.play(0));
+    addEventListener("click", () => tl.restart());
+    addEventListener("keydown", (e) => { if (e.code === "Space") tl.paused(!tl.paused()); });
+  } else {
+    $("#progress").style.display = "none";
+  }
+})();
+</script>
+</body>
+</html>

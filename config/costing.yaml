@@ -1,0 +1,15 @@
+# How LLM cost is reported.
+#
+# The LLM runs locally in Ollama, so there is no API bill. To make the comparison meaningful
+# we report two numbers:
+#   1. Equivalent hosted-API cost: tokens counted by Ollama x the per-token price below.
+#      These are EXAMPLE rates - replace them with your provider's current price list.
+#   2. Local compute cost: seconds the LLM was busy x an hourly machine price.
+hosted_api:
+  name: "Example hosted LLM (edit config/costing.yaml)"
+  input_per_million_usd: 1.00
+  output_per_million_usd: 5.00
+local_compute:
+  name: "Local machine running Ollama"
+  usd_per_hour: 0.50
+daily_volume: 10000

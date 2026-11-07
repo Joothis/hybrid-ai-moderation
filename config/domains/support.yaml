@@ -1,0 +1,95 @@
+name: support
+display_name: Support tickets & community forum
+description: Customer-support tickets and community forum posts. Synthetic dataset (templated, with hard negatives).
+labels:
+  pii_leak: Shares personal or sensitive data publicly (email, phone, card number, address, password, ID numbers).
+  scam: Phishing or fraud - fake support, asks for credentials/payment/gift cards/crypto, too-good-to-be-true offers.
+  self_harm: Expresses intent or desire to hurt or kill oneself.
+  harassment: Insults, threats or abuse towards staff or other users.
+
+routing:
+  # Share of comments reaching the ML layer that may be escalated to the LLM. Training turns this into
+  # the width of the "unsure" band around each label threshold.
+  escalation_budget: 0.20
+  # Severity-aware routing: missing a self-harm post is far worse than one extra LLM call,
+  # so any self_harm probability above 0.03 is escalated instead of auto-allowed.
+  lo_by_label:
+    self_harm: 0.03
+
+rules:
+  - name: email_address
+    view: raw
+    pattern: '[\w.+-]+@[\w-]+\.[a-z]{2,}'
+    labels: [pii_leak]
+    reason: Contains an email address
+  - name: card_number
+    view: raw
+    pattern: '\b(?:\d[ -]?){13,16}\b'
+    labels: [pii_leak]
+    reason: Looks like a payment card number
+  - name: phone_number
+    view: raw
+    pattern: '(?<!\d)(\+?\d{1,3}[\s.-]?)?\(?\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}(?!\d)'
+    labels: [pii_leak]
+    reason: Contains a phone number
+  - name: ssn
+    view: raw
+    pattern: '\b\d{3}-\d{2}-\d{4}\b'
+    labels: [pii_leak]
+    reason: Looks like a social security number
+  - name: password_shared
+    pattern: '\bpassword\s*(is|=|:)\s*\S+'
+    labels: [pii_leak]
+    reason: Shares a password
+  - name: explicit_self_harm
+    pattern: '\b(want to|going to|gonna|plan to|planning to)\s+(kill myself|end my life|end it all)\b'
+    labels: [self_harm]
+    reason: Explicit statement of self-harm intent
+  - name: gift_card_crypto_payment
+    pattern: '\b(send|transfer|pay|buy)\b.{0,40}\b(gift ?cards?|itunes cards?|bitcoin|btc|usdt|crypto)\b'
+    labels: [scam]
+    reason: Requests payment by gift card / crypto
+
+llm:
+  policy: |
+    You moderate a customer-support portal and its public community forum.
+    Frustration, complaints and venting about the product are ALLOWED. Figures of speech
+    ("this bug is killing me", "I'm dying of boredom") are NOT self-harm.
+    Mentioning that a field exists ("where do I change my email?") is NOT a pii_leak; sharing the actual value is.
+    Official reminders ("we will never ask for your password") are NOT scams.
+  examples:
+    - text: "This update is killing me, the export button is gone again."
+      labels: []
+      reason: Figure of speech about a bug.
+    - text: "Hi, I'm from the billing team, please confirm your login details here to avoid suspension."
+      labels: [scam]
+      reason: Phishing for credentials while impersonating staff.
+    - text: "honestly i don't see the point anymore, everyone would be better off without me"
+      labels: [self_harm]
+      reason: Indirect expression of suicidal ideation.
+
+demo_examples:
+  - text: "My card is 4111 1111 1111 1111 exp 09/27, why was I charged twice?"
+    expect: rules
+    note: Card number - regex catches PII instantly
+  - text: "Reach me at jane.doe@example.com for the refund"
+    expect: rules
+    note: Email address
+  - text: "Your support agents are useless idiots, I hope you all get fired."
+    expect: ml
+    note: Harassment of staff
+  - text: "How do I export my invoices as a PDF?"
+    expect: ml
+    note: Normal support question
+  - text: "honestly i'm so tired of everything, i don't think i'll be around much longer"
+    expect: llm
+    note: "Indirect self-harm: ML said clean (p=0.04) but the severity floor escalates it"
+  - text: "URGENT: everyone would be better off without me !!"
+    expect: llm
+    note: "Test ticket: unseen self-harm phrasing - LLM flags it (label: self_harm)"
+  - text: "Ugh, I want to throw my laptop out the window, search won't sync."
+    expect: llm
+    note: "Test ticket: violent figure of speech - LLM correctly allows it (label: clean)"
+  - text: "Admin here - DM me your account recovery code so I can verify you're not a bot."
+    expect: ml
+    note: Social-engineering scam - ML catches the pattern

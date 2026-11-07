@@ -1,0 +1,81 @@
+name: social
+display_name: Social media comments
+description: News-site / social comments. Real data from the Jigsaw Civil Comments dataset.
+labels:
+  toxic: Rude, disrespectful or unreasonable language likely to make someone leave the discussion.
+  insult: Insulting, inflammatory or negative comment towards a person or group.
+  obscene: Swear words, cursing or other obscene/profane language.
+  threat: Intention to inflict pain, injury or violence against a person or group.
+  identity_attack: Negative or hateful comment targeting someone because of their identity (race, religion, gender, sexuality, etc.).
+
+routing:
+  # Share of comments reaching the ML layer that may be escalated to the LLM. Training turns this into
+  # the width of the "unsure" band around each label threshold.
+  escalation_budget: 0.20
+
+rules:
+  - name: directed_profanity
+    pattern: '\b(fuck|screw)\s*(you|u|off|yourself)\b'
+    labels: [toxic, insult, obscene]
+    reason: Profanity aimed directly at a person
+  - name: directed_profanity_obfuscated
+    view: squash
+    pattern: 'fuckyou|fuckoff|stfu'
+    labels: [toxic, insult, obscene]
+    reason: Obfuscated directed profanity (e.g. "f.u.c.k y.o.u")
+  - name: self_harm_incitement
+    pattern: '\bkys\b|\bkill\s+yo?urself\b|\bgo\s+die\b'
+    labels: [toxic, threat]
+    reason: Telling someone to kill themselves
+  - name: direct_threat
+    pattern: '\bi\s*(''ll|will|am going to|''m going to|m gonna|''m gonna|am gonna)\s+(kill|murder|shoot|stab|hurt|beat)\s+(you|u|ya|your)\b'
+    labels: [toxic, threat]
+    reason: First-person threat of violence
+  - name: strong_obscene_insult
+    pattern: '\b(motherfuck\w*|cunt|fucking\s+(idiot|moron|stupid|retard\w*)|piece\s+of\s+shit|dumbass|shithead|asshole)\b'
+    labels: [toxic, insult, obscene]
+    reason: Strong obscene insult
+  - name: trivial_positive
+    action: allow
+    pattern: '^\W*(thanks?( you)?|thank u|great (post|article|point|read)|well said|agreed|congrats|congratulations|lol|\+1)\W*$'
+    reason: Short, clearly benign reply
+
+llm:
+  policy: |
+    You are a content moderator for the comment section of a news / social media site.
+    Free speech matters: strong opinions, criticism of public figures and policies, sarcasm about ideas,
+    and quoting offensive words in order to discuss or condemn them are ALLOWED.
+    Flag a comment only when it attacks, demeans, threatens or uses obscene language.
+  examples:
+    - text: "This policy is a disaster and the mayor should resign."
+      labels: []
+      reason: Harsh political criticism, no personal attack.
+    - text: "Only an absolute moron would believe this garbage, you clown."
+      labels: [toxic, insult]
+      reason: Directly insults the reader.
+    - text: "People like you should be shot."
+      labels: [toxic, threat]
+      reason: Wishes violence on a person.
+
+demo_examples:
+  - text: "f.u.c.k y.o.u, nobody asked"
+    expect: rules
+    note: Obfuscated profanity - normalisation lets a regex catch it
+  - text: "Thanks!"
+    expect: rules
+    note: Trivially benign, allowed by rule
+  - text: "You are a complete idiot and an embarrassment to this city."
+    expect: ml
+    note: Clear insult, ML is confident
+  - text: "The city council meeting has been moved to Thursday at 7pm."
+    expect: ml
+    note: Clearly clean, ML is confident
+  - text: "Mr. Ritz is a rude and uncouth man. He won't be missed."
+    expect: llm
+    note: "Real test comment: polite-sounding insult, ML unsure -> LLM flags it (label: toxic)"
+  - text: "There's an old saying................Beggars can't be choosers."
+    expect: llm
+    note: "Real test comment: ML leans toxic, LLM correctly allows it (label: clean)"
+  - text: "After 28 years. \nAnother fine job by the government."
+    expect: ml
+    note: "Real test comment: ML allows correctly, LLM-only wrongly flags sarcasm about government"

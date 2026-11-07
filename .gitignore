@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+
+# Rebuilt by scripts/prepare_data.py and scripts/train.py
+data/raw/
+data/processed/
+models/
+
+# Logs and local tooling
+*.log
+.claude/
+
+# Explainer build intermediates (the final voiced video is kept)
+demo/explainer/audio/
+demo/explainer/stills/
+demo/explainer/how_it_works.mp4
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

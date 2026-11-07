@@ -1,0 +1,72 @@
+name: ecommerce
+display_name: E-commerce product reviews
+description: Product reviews. Real human vs computer-generated reviews (Salminen et al. fake reviews dataset) plus synthetic spam / abuse / off-topic reviews.
+labels:
+  fake: Computer-generated or inauthentic review (generic praise, no concrete product experience).
+  spam: Advertising, links, contact details, promo/referral codes, or attempts to move buyers off-platform.
+  abusive: Profanity, harassment of the seller/other reviewers, or hateful language.
+  off_topic: Not about the product at all (politics, random chat, shipping company rants unrelated to the item, etc.).
+
+routing:
+  # Share of comments reaching the ML layer that may be escalated to the LLM. Training turns this into
+  # the width of the "unsure" band around each label threshold.
+  escalation_budget: 0.20
+
+rules:
+  - name: url_link
+    view: raw
+    pattern: 'https?://\S+|www\.\S+|\b[\w-]+\.(xyz|biz|ru|top|shop|click)\b'
+    labels: [spam]
+    reason: Contains a link
+  - name: off_platform_contact
+    pattern: '\b(whats\s?app|telegram|wechat|signal me|dm me|text me)\b'
+    labels: [spam]
+    reason: Pushes buyers to an off-platform contact
+  - name: referral_code
+    pattern: '\b(use|enter|apply)\s+(my\s+)?(promo|discount|coupon|referral|invite)\s+code\b'
+    labels: [spam]
+    reason: Promotes a referral / promo code
+  - name: profanity
+    pattern: '\b(fuck\w*|motherfuck\w*|cunt|piece\s+of\s+shit|asshole|scumbag)\b'
+    labels: [abusive]
+    reason: Profanity / abusive language
+
+llm:
+  policy: |
+    You are a trust & safety moderator for an online marketplace's product reviews.
+    Negative reviews are ALLOWED and valuable, even harsh ones, as long as they are about the product or the buying experience.
+    "fake" means the review reads as machine-generated or inauthentic: generic praise or complaints with no concrete,
+    specific details of real use. Real reviews usually mention specifics, quirks, comparisons, or how long they used it.
+  examples:
+    - text: "Battery died after 3 weeks. Returned it. The charger port also wobbles."
+      labels: []
+      reason: Negative but genuine, specific product experience.
+    - text: "This product is great. I love it. It works great and is great quality. Highly recommend this product."
+      labels: [fake]
+      reason: Repetitive generic praise with no specifics.
+    - text: "Cheaper version here, message me for 50% off before it sells out!!"
+      labels: [spam]
+      reason: Promotes an off-platform sale.
+
+demo_examples:
+  - text: "Great earbuds! Get them 70% cheaper at www.best-deals.xyz"
+    expect: rules
+    note: Link -> spam, caught by a regex
+  - text: "Add me on WhatsApp for wholesale price"
+    expect: rules
+    note: Off-platform contact
+  - text: "The seller is a lying thief and I hope their shop burns down"
+    expect: ml
+    note: Abusive towards seller
+  - text: "Elections are rigged and nobody is talking about it. Wake up people."
+    expect: ml
+    note: Off-topic political rant
+  - text: "For the price the are ok, the front sight for a low gas block for 20 bucks is great Get paid to write reviews like this one - ask me how."
+    expect: llm
+    note: "Test review: spam hidden inside a genuine review - LLM spots it (label: spam)"
+  - text: "Cute idea for a car ride. Appropriate for younger kids as well as older ones. I miss the old days when people actually talked to each other."
+    expect: llm
+    note: "Test review: drifts off-topic - LLM flags it (label: off_topic)"
+  - text: "Nice product but you will need glue for the top or else it won't stay on."
+    expect: llm
+    note: "Real review: ML suspects 'fake', LLM sees a concrete detail and allows it (label: genuine)"

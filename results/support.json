@@ -1,0 +1,487 @@
+{
+  "domain": "support",
+  "display_name": "Support tickets & community forum",
+  "sample": 300,
+  "seed": 0,
+  "llm_model": "qwen3:8b",
+  "routing": {
+    "escalation_budget": 0.2,
+    "lo_by_label": {
+      "self_harm": 0.03
+    }
+  },
+  "margin": 0.45072910926974324,
+  "positive_rate": 0.45,
+  "metrics": {
+    "ml_only": {
+      "n": 300,
+      "flag": {
+        "f1": 0.8382,
+        "precision": 0.8321,
+        "recall": 0.8444,
+        "tp": 114,
+        "fp": 23,
+        "fn": 21,
+        "tn": 142
+      },
+      "macro_label_f1": 0.766,
+      "per_label_f1": {
+        "pii_leak": 1.0,
+        "scam": 0.7308,
+        "self_harm": 0.4,
+        "harassment": 0.9333
+      },
+      "latency_ms": {
+        "mean": 1.7,
+        "p50": 1.6,
+        "p95": 2.2,
+        "total_s": 0.5
+      },
+      "llm_calls": 0,
+      "escalation_rate": 0.0,
+      "llm_errors": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "decided_by": {
+        "rules": 0,
+        "ml": 300,
+        "llm": 0
+      },
+      "cost": {
+        "daily_volume": 10000,
+        "llm_calls_per_day": 0,
+        "tokens_per_day": 0,
+        "api_usd_per_day": 0.0,
+        "api_usd_per_month": 0.0,
+        "llm_compute_hours_per_day": 0.0,
+        "local_usd_per_day": 0.0,
+        "api_price_note": "Example hosted LLM (edit config/costing.yaml): $1.0/M in, $5.0/M out"
+      }
+    },
+    "llm_only": {
+      "n": 300,
+      "flag": {
+        "f1": 0.9375,
+        "precision": 0.8824,
+        "recall": 1.0,
+        "tp": 135,
+        "fp": 18,
+        "fn": 0,
+        "tn": 147
+      },
+      "macro_label_f1": 0.9196,
+      "per_label_f1": {
+        "pii_leak": 1.0,
+        "scam": 1.0,
+        "self_harm": 0.6786,
+        "harassment": 1.0
+      },
+      "latency_ms": {
+        "mean": 4986.8,
+        "p50": 4968.2,
+        "p95": 5655.7,
+        "total_s": 1496.0
+      },
+      "llm_calls": 300,
+      "escalation_rate": 1.0,
+      "llm_errors": 0,
+      "prompt_tokens": 137872,
+      "completion_tokens": 8310,
+      "decided_by": {
+        "rules": 0,
+        "ml": 0,
+        "llm": 300
+      },
+      "cost": {
+        "daily_volume": 10000,
+        "llm_calls_per_day": 10000,
+        "tokens_per_day": 4872733,
+        "api_usd_per_day": 5.9807,
+        "api_usd_per_month": 179.42,
+        "llm_compute_hours_per_day": 13.85,
+        "local_usd_per_day": 6.93,
+        "api_price_note": "Example hosted LLM (edit config/costing.yaml): $1.0/M in, $5.0/M out"
+      }
+    },
+    "rules_ml": {
+      "n": 300,
+      "flag": {
+        "f1": 0.8382,
+        "precision": 0.8321,
+        "recall": 0.8444,
+        "tp": 114,
+        "fp": 23,
+        "fn": 21,
+        "tn": 142
+      },
+      "macro_label_f1": 0.766,
+      "per_label_f1": {
+        "pii_leak": 1.0,
+        "scam": 0.7308,
+        "self_harm": 0.4,
+        "harassment": 0.9333
+      },
+      "latency_ms": {
+        "mean": 1.6,
+        "p50": 1.7,
+        "p95": 2.3,
+        "total_s": 0.5
+      },
+      "llm_calls": 0,
+      "escalation_rate": 0.0,
+      "llm_errors": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "decided_by": {
+        "rules": 27,
+        "ml": 273,
+        "llm": 0
+      },
+      "cost": {
+        "daily_volume": 10000,
+        "llm_calls_per_day": 0,
+        "tokens_per_day": 0,
+        "api_usd_per_day": 0.0,
+        "api_usd_per_month": 0.0,
+        "llm_compute_hours_per_day": 0.0,
+        "local_usd_per_day": 0.0,
+        "api_price_note": "Example hosted LLM (edit config/costing.yaml): $1.0/M in, $5.0/M out"
+      }
+    },
+    "hybrid": {
+      "n": 300,
+      "flag": {
+        "f1": 0.852,
+        "precision": 0.831,
+        "recall": 0.8741,
+        "tp": 118,
+        "fp": 24,
+        "fn": 17,
+        "tn": 141
+      },
+      "macro_label_f1": 0.799,
+      "per_label_f1": {
+        "pii_leak": 1.0,
+        "scam": 0.7451,
+        "self_harm": 0.4898,
+        "harassment": 0.961
+      },
+      "latency_ms": {
+        "mean": 1017.1,
+        "p50": 1.9,
+        "p95": 5062.7,
+        "total_s": 305.1
+      },
+      "llm_calls": 63,
+      "escalation_rate": 0.21,
+      "llm_errors": 0,
+      "prompt_tokens": 28939,
+      "completion_tokens": 1730,
+      "decided_by": {
+        "rules": 27,
+        "ml": 210,
+        "llm": 63
+      },
+      "cost": {
+        "daily_volume": 10000,
+        "llm_calls_per_day": 2100,
+        "tokens_per_day": 1022300,
+        "api_usd_per_day": 1.253,
+        "api_usd_per_month": 37.59,
+        "llm_compute_hours_per_day": 2.82,
+        "local_usd_per_day": 1.41,
+        "api_price_note": "Example hosted LLM (edit config/costing.yaml): $1.0/M in, $5.0/M out"
+      }
+    }
+  },
+  "tradeoff": [
+    {
+      "margin": 0.0,
+      "f1": 0.8382,
+      "escalation_rate": 0.0,
+      "fp": 23,
+      "fn": 21
+    },
+    {
+      "margin": 0.1,
+      "f1": 0.8298,
+      "escalation_rate": 0.1,
+      "fp": 30,
+      "fn": 18
+    },
+    {
+      "margin": 0.2,
+      "f1": 0.8448,
+      "escalation_rate": 0.1267,
+      "fp": 25,
+      "fn": 18
+    },
+    {
+      "margin": 0.3,
+      "f1": 0.8478,
+      "escalation_rate": 0.14,
+      "fp": 24,
+      "fn": 18
+    },
+    {
+      "margin": 0.4,
+      "f1": 0.852,
+      "escalation_rate": 0.19,
+      "fp": 24,
+      "fn": 17
+    },
+    {
+      "margin": 0.5,
+      "f1": 0.8602,
+      "escalation_rate": 0.2267,
+      "fp": 24,
+      "fn": 15
+    },
+    {
+      "margin": 0.6,
+      "f1": 0.8643,
+      "escalation_rate": 0.2667,
+      "fp": 24,
+      "fn": 14
+    },
+    {
+      "margin": 0.7,
+      "f1": 0.8794,
+      "escalation_rate": 0.2867,
+      "fp": 23,
+      "fn": 11
+    },
+    {
+      "margin": 0.8,
+      "f1": 0.8951,
+      "escalation_rate": 0.3033,
+      "fp": 23,
+      "fn": 7
+    },
+    {
+      "margin": 0.9,
+      "f1": 0.8951,
+      "escalation_rate": 0.32,
+      "fp": 23,
+      "fn": 7
+    },
+    {
+      "margin": 1.0,
+      "f1": 0.8982,
+      "escalation_rate": 0.3433,
+      "fp": 22,
+      "fn": 7
+    },
+    {
+      "margin": 1.1,
+      "f1": 0.9046,
+      "escalation_rate": 0.4133,
+      "fp": 20,
+      "fn": 7
+    },
+    {
+      "margin": 1.2,
+      "f1": 0.9078,
+      "escalation_rate": 0.5367,
+      "fp": 19,
+      "fn": 7
+    },
+    {
+      "margin": 1.3,
+      "f1": 0.911,
+      "escalation_rate": 0.6633,
+      "fp": 18,
+      "fn": 7
+    },
+    {
+      "margin": 1.4,
+      "f1": 0.9149,
+      "escalation_rate": 0.7067,
+      "fp": 18,
+      "fn": 6
+    },
+    {
+      "margin": 1.5,
+      "f1": 0.9225,
+      "escalation_rate": 0.75,
+      "fp": 18,
+      "fn": 4
+    },
+    {
+      "margin": 1.6,
+      "f1": 0.9338,
+      "escalation_rate": 0.7633,
+      "fp": 18,
+      "fn": 1
+    },
+    {
+      "margin": 1.7,
+      "f1": 0.9375,
+      "escalation_rate": 0.7833,
+      "fp": 18,
+      "fn": 0
+    },
+    {
+      "margin": 1.8,
+      "f1": 0.9375,
+      "escalation_rate": 0.8,
+      "fp": 18,
+      "fn": 0
+    },
+    {
+      "margin": 1.9,
+      "f1": 0.9375,
+      "escalation_rate": 0.8167,
+      "fp": 18,
+      "fn": 0
+    },
+    {
+      "margin": 2.0,
+      "f1": 0.9375,
+      "escalation_rate": 0.8233,
+      "fp": 18,
+      "fn": 0
+    },
+    {
+      "margin": 2.1,
+      "f1": 0.9375,
+      "escalation_rate": 0.8333,
+      "fp": 18,
+      "fn": 0
+    },
+    {
+      "margin": 2.2,
+      "f1": 0.9375,
+      "escalation_rate": 0.8333,
+      "fp": 18,
+      "fn": 0
+    },
+    {
+      "margin": 2.3,
+      "f1": 0.9375,
+      "escalation_rate": 0.8333,
+      "fp": 18,
+      "fn": 0
+    },
+    {
+      "margin": 2.4,
+      "f1": 0.9375,
+      "escalation_rate": 0.8333,
+      "fp": 18,
+      "fn": 0
+    },
+    {
+      "margin": 2.5,
+      "f1": 0.9375,
+      "escalation_rate": 0.8333,
+      "fp": 18,
+      "fn": 0
+    },
+    {
+      "margin": 2.6,
+      "f1": 0.9375,
+      "escalation_rate": 0.8333,
+      "fp": 18,
+      "fn": 0
+    },
+    {
+      "margin": 2.7,
+      "f1": 0.9375,
+      "escalation_rate": 0.8333,
+      "fp": 18,
+      "fn": 0
+    },
+    {
+      "margin": 2.8,
+      "f1": 0.9375,
+      "escalation_rate": 0.8333,
+      "fp": 18,
+      "fn": 0
+    },
+    {
+      "margin": 2.9,
+      "f1": 0.9375,
+      "escalation_rate": 0.8333,
+      "fp": 18,
+      "fn": 0
+    },
+    {
+      "margin": 3.0,
+      "f1": 0.9375,
+      "escalation_rate": 0.8333,
+      "fp": 18,
+      "fn": 0
+    },
+    {
+      "margin": 3.1,
+      "f1": 0.9375,
+      "escalation_rate": 0.8333,
+      "fp": 18,
+      "fn": 0
+    },
+    {
+      "margin": 3.2,
+      "f1": 0.9375,
+      "escalation_rate": 0.8333,
+      "fp": 18,
+      "fn": 0
+    },
+    {
+      "margin": 3.3,
+      "f1": 0.9375,
+      "escalation_rate": 0.8333,
+      "fp": 18,
+      "fn": 0
+    },
+    {
+      "margin": 3.4,
+      "f1": 0.9375,
+      "escalation_rate": 0.8333,
+      "fp": 18,
+      "fn": 0
+    },
+    {
+      "margin": 3.5,
+      "f1": 0.9375,
+      "escalation_rate": 0.8333,
+      "fp": 18,
+      "fn": 0
+    },
+    {
+      "margin": 3.6,
+      "f1": 0.9375,
+      "escalation_rate": 0.8333,
+      "fp": 18,
+      "fn": 0
+    },
+    {
+      "margin": 3.7,
+      "f1": 0.9375,
+      "escalation_rate": 0.8333,
+      "fp": 18,
+      "fn": 0
+    },
+    {
+      "margin": 3.8,
+      "f1": 0.9375,
+      "escalation_rate": 0.8333,
+      "fp": 18,
+      "fn": 0
+    },
+    {
+      "margin": 3.9,
+      "f1": 0.9375,
+      "escalation_rate": 0.8333,
+      "fp": 18,
+      "fn": 0
+    },
+    {
+      "margin": 4.0,
+      "f1": 0.9375,
+      "escalation_rate": 0.8333,
+      "fp": 18,
+      "fn": 0
+    }
+  ],
+  "generated_at": "2026-11-07 13:17"
+}
