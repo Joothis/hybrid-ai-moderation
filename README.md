@@ -12,7 +12,7 @@ and benchmarks that design against ML only and LLM only.
 ![scikit-learn](https://img.shields.io/badge/scikit--learn-TF--IDF%20%2B%20LogReg-F7931E?logo=scikitlearn&logoColor=white)
 ![Ollama](https://img.shields.io/badge/LLM-Ollama%20qwen3%3A8b-000000)
 ![Streamlit](https://img.shields.io/badge/UI-Streamlit-FF4B4B?logo=streamlit&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-32%20passing-2ea44f)
+[![Tests](https://github.com/Joothis/hybrid-ai-moderation/actions/workflows/tests.yml/badge.svg)](https://github.com/Joothis/hybrid-ai-moderation/actions/workflows/tests.yml)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 
 <img src="docs/demo.gif" alt="Animated walkthrough: a comment is caught by rules, one by the ML model, and an ambiguous one is escalated to the LLM" width="860">
@@ -158,7 +158,7 @@ Prerequisites: Python 3.11+ and [Ollama](https://ollama.com) with a local model
 run and fall back to the ML decision.
 
 ```bash
-git clone <this-repo-url> && cd <repo-folder>
+git clone https://github.com/Joothis/hybrid-ai-moderation.git && cd hybrid-ai-moderation
 pip install -r requirements.txt
 
 python scripts/prepare_data.py            # downloads public datasets, builds splits for all 3 use cases

@@ -19,6 +19,10 @@ demo/explainer/audio/
 demo/explainer/stills/
 demo/explainer/how_it_works.mp4
 
+# Local-only material (recording notes, social media posts)
+demo/video_script.md
+demo/linkedin/
+
 # OS / editors
 .DS_Store
 Thumbs.db
